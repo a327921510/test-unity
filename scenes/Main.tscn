@@ -6,9 +6,9 @@
 script = ExtResource("1_h8v8f")
 
 [node name="HelloLabel" type="Label" parent="."]
-offset_left = 520.0
-offset_top = 330.0
-offset_right = 760.0
-offset_bottom = 390.0
-theme_override_font_sizes/font_size = 42
-text = "Hello World"
+offset_left = 20.0
+offset_top = 20.0
+offset_right = 1240.0
+offset_bottom = 120.0
+theme_override_font_sizes/font_size = 20
+text = "Loading..."
