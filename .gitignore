@@ -1,0 +1,15 @@
+# Godot 4+
+.godot/
+.import/
+export_presets.cfg
+*.translation
+
+# Mono / C#
+.mono/
+data_*/
+
+# Build / IDE
+*.tmp
+*.log
+.vscode/
+.idea/
