@@ -9,6 +9,8 @@ const ARMY_COMPOSER_SCRIPT := preload("res://scripts/core/ArmyComposer.gd")
 const CITY_MANAGER_SCRIPT := preload("res://scripts/core/CityManager.gd")
 const LOGISTICS_SYSTEM_SCRIPT := preload("res://scripts/core/LogisticsSystem.gd")
 const COMBAT_SYSTEM_SCRIPT := preload("res://scripts/core/CombatSystem.gd")
+const DEBUG_PANEL_SCRIPT := preload("res://scripts/ui/DebugPanel.gd")
+const REASON_CODES := preload("res://scripts/common/ReasonCodes.gd")
 
 const HEX_SIZE := 30.0
 const GRID_RADIUS := 4
@@ -26,9 +28,12 @@ var _unit_transport
 var _city_alpha
 var _unit_list: Array = []
 var _status_text := ""
+var _event_logs: Array[String] = []
+var _debug_panel
 
 func _ready() -> void:
 	_initialize_demo()
+	_build_debug_panel()
 	_update_status("启动完成。按键: M移动 C编制 E入城 S补给 F野战 G攻城 T月结算 Space结束回合 R重置。")
 	queue_redraw()
 
@@ -56,6 +61,8 @@ func _unhandled_input(event: InputEvent) -> void:
 			KEY_R:
 				_initialize_demo()
 				_update_status("已重置演示状态。")
+			KEY_Y:
+				_run_full_demo_once()
 			_:
 				return
 		queue_redraw()
@@ -98,6 +105,8 @@ func _initialize_demo() -> void:
 	var city_cells: Array[Vector2i] = [Vector2i(2, 2)]
 	_unit_list = [_unit_a, _unit_b, _unit_transport]
 	_grid_rules.setup(city_cells, _unit_list)
+	_event_logs.clear()
+	_push_log("场景初始化完成。")
 
 	print("RULE_FREEZE_VERSION=", RULE_CONFIGS_SCRIPT.RULE_FREEZE_VERSION)
 	print("Current faction=", _turn_manager.current_faction_id(), ", turn=", _turn_manager.current_turn_count())
@@ -119,6 +128,7 @@ func _try_move_current_unit() -> void:
 			unit.remaining_move_points
 		]
 	)
+	_push_log("移动: faction=%s target=%s reason=%s" % [faction, str(target), _reason_to_text(reason)])
 
 func _try_compose_unit() -> void:
 	var faction: String = _turn_manager.current_faction_id()
@@ -132,61 +142,78 @@ func _try_compose_unit() -> void:
 	)
 	if not result["ok"]:
 		_update_status("编制失败：%s" % result["reason"])
+		_push_log("编制失败: %s" % result["reason"])
 		return
 	var new_unit = result["unit"]
 	_unit_list.append(new_unit)
 	_grid_rules.register_unit(new_unit)
 	_update_status("编制成功：%s 已出征，城市兵源=%d，城市粮=%d" % [new_unit.id, _city_alpha.troop_source, _city_alpha.food])
+	_push_log("编制成功: unit=%s" % new_unit.id)
 
 func _try_city_entry_disband() -> void:
 	if not _grid_rules.is_city_entry_allowed(_unit_a, _city_alpha.core_grid):
 		_update_status("入城失败：需相邻城市且未执行且剩余行动力>0。")
+		_push_log("入城失败: %s" % REASON_CODES.CITY_ENTRY_PRECHECK_FAILED)
 		return
 	var result: Dictionary = _army_composer.disband_into_city(_unit_a, _city_alpha)
 	if not result["ok"]:
 		_update_status("入城失败：%s" % result["reason"])
+		_push_log("入城失败: %s" % result["reason"])
 		return
 	_grid_rules.remove_unit(_unit_a)
 	_unit_a.is_routed = true
 	_update_status("入城拆解成功：回库兵源=%d，城市兵源=%d，城市伤员=%d" % [
 		result["returned"]["troop_source"], _city_alpha.troop_source, _city_alpha.wounded_troop_source
 	])
+	_push_log("入城成功: troop_return=%d" % result["returned"]["troop_source"])
 
 func _try_supply() -> void:
 	var reachable: bool = _grid_rules.is_supply_reachable(_unit_transport.grid, _unit_a.grid)
 	var result: Dictionary = _logistics.supply(_unit_transport, _unit_a, {"troop_source": 300, "food": 600, "money": 200}, reachable)
 	if not result["ok"]:
 		_update_status("补给失败：%s" % result["reason"])
+		_push_log("补给失败: %s" % result["reason"])
 		return
 	_update_status("补给成功：兵源+%d 粮+%d 钱+%d，目标战法点=%.1f" % [
 		result["delta"]["troop_source"], result["delta"]["food"], result["delta"]["money"], result["target_tactic_point"]
+	])
+	_push_log("补给成功: %+d troop %+d food %+d money" % [
+		result["delta"]["troop_source"], result["delta"]["food"], result["delta"]["money"]
 	])
 
 func _try_battle() -> void:
 	if _grid_rules.hex_distance(_unit_a.grid, _unit_b.grid) > 1:
 		_update_status("战斗失败：目标不在相邻格。")
+		_push_log("战斗失败: %s" % REASON_CODES.TARGET_NOT_ADJACENT)
 		return
 	var result: Dictionary = _combat.resolve_battle(_unit_a, _unit_b, 1.0)
 	if not result["ok"]:
 		_update_status("战斗失败：%s" % result["reason"])
+		_push_log("战斗失败: %s" % result["reason"])
 		return
 	if _unit_b.is_routed:
 		_grid_rules.remove_unit(_unit_b)
 	_update_status("野战完成：敌损=%d 我损=%d；%s" % [
 		result["defender_loss"], result["attacker_loss"], ",".join(result["logs"])
 	])
+	_push_log("野战完成: defender_loss=%d attacker_loss=%d" % [result["defender_loss"], result["attacker_loss"]])
 
 func _try_siege() -> void:
 	if not _grid_rules.is_adjacent(_unit_a.grid, _city_alpha.core_grid):
 		_update_status("攻城失败：需要在城市邻格。")
+		_push_log("攻城失败: NOT_ADJACENT_TO_CITY")
 		return
 	var result: Dictionary = _combat.resolve_siege(_unit_a, _city_alpha)
 	if not result["ok"]:
 		_update_status("攻城失败：%s" % result["reason"])
+		_push_log("攻城失败: %s" % result["reason"])
 		return
 	_update_status("攻城完成：耐久变化=%d，城内兵源变化=%d，破城=%s，易主=%s(%s)" % [
 		result["city_durability_delta"], result["city_troop_source_delta"],
 		str(result["is_city_breached"]), str(result["city_owner_changed"]), result["new_owner_faction_id"]
+	])
+	_push_log("攻城完成: durability_delta=%d breached=%s owner=%s" % [
+		result["city_durability_delta"], str(result["is_city_breached"]), result["new_owner_faction_id"]
 	])
 
 func _run_monthly_settlement() -> void:
@@ -195,6 +222,7 @@ func _run_monthly_settlement() -> void:
 		result["money_delta"], result["food_delta"], result["weapon_delta"], result["troop_source_delta"],
 		result["wounded_recovery_delta"], result["conscription_delta"]
 	])
+	_push_log("月结算: money=%d food=%d troop=%d" % [result["money_delta"], result["food_delta"], result["troop_source_delta"]])
 
 func _apply_turn_end_logistics() -> void:
 	for unit in _unit_list:
@@ -203,6 +231,71 @@ func _apply_turn_end_logistics() -> void:
 		var starve: Dictionary = _logistics.apply_starvation(unit)
 		if starve["triggered"]:
 			print("STARVATION unit=%s loss=%d" % [unit.id, starve["loss"]])
+			_push_log("断粮: unit=%s loss=%d" % [unit.id, starve["loss"]])
+
+func _run_full_demo_once() -> void:
+	_initialize_demo()
+	_try_move_current_unit()
+	_try_supply()
+	_try_battle()
+	_try_move_current_unit()
+	_try_siege()
+	_run_monthly_settlement()
+	_update_status("一键演示执行完毕，可查看右下战报。")
+	_push_log("一键闭环演示完成。")
+	queue_redraw()
+
+func _build_debug_panel() -> void:
+	if has_node("DebugUI"):
+		return
+	_debug_panel = DEBUG_PANEL_SCRIPT.new()
+	_debug_panel.name = "DebugUI"
+	add_child(_debug_panel)
+	_debug_panel.setup(Callable(self, "_handle_debug_action"))
+
+func _handle_debug_action(action_id: String) -> void:
+	match action_id:
+		"move":
+			_try_move_current_unit()
+		"compose":
+			_try_compose_unit()
+		"entry":
+			_try_city_entry_disband()
+		"supply":
+			_try_supply()
+		"battle":
+			_try_battle()
+		"siege":
+			_try_siege()
+		"monthly":
+			_run_monthly_settlement()
+		"end_turn":
+			_on_click_end_turn()
+		"full_demo":
+			_run_full_demo_once()
+		"reset":
+			_on_click_reset()
+		_:
+			return
+	queue_redraw()
+
+func _on_click_end_turn() -> void:
+	_apply_turn_end_logistics()
+	_turn_manager.end_turn()
+	_update_status("结束回合，当前势力：%s，回合：%d" % [_turn_manager.current_faction_id(), _turn_manager.current_turn_count()])
+	queue_redraw()
+
+func _on_click_reset() -> void:
+	_initialize_demo()
+	_update_status("已重置演示状态。")
+	queue_redraw()
+
+func _push_log(text: String) -> void:
+	_event_logs.append(text)
+	if _event_logs.size() > 14:
+		_event_logs.remove_at(0)
+	if _debug_panel != null:
+		_debug_panel.set_logs(_event_logs)
 
 func _update_status(text: String) -> void:
 	_status_text = "Freeze=%s | 当前势力=%s | 回合=%d\n%s" % [

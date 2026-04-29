@@ -2,16 +2,17 @@ extends RefCounted
 class_name LogisticsSystem
 
 const UNIT_DATA_SCRIPT := preload("res://scripts/domain/Unit.gd")
+const REASON_CODES := preload("res://scripts/common/ReasonCodes.gd")
 
 func supply(transport, target, payload: Dictionary, is_reachable: bool) -> Dictionary:
 	if not is_reachable:
-		return {"ok": false, "reason": "SUPPLY_OUT_OF_RANGE"}
+		return {"ok": false, "reason": REASON_CODES.SUPPLY_OUT_OF_RANGE}
 	if transport.arms_type != UNIT_DATA_SCRIPT.ArmsType.TRANSPORT:
-		return {"ok": false, "reason": "NOT_TRANSPORT_UNIT"}
+		return {"ok": false, "reason": REASON_CODES.NOT_TRANSPORT_UNIT}
 	if transport.execution_state != UNIT_DATA_SCRIPT.ExecutionState.UNEXECUTED:
-		return {"ok": false, "reason": "TRANSPORT_ALREADY_EXECUTED"}
+		return {"ok": false, "reason": REASON_CODES.TRANSPORT_ALREADY_EXECUTED}
 	if transport.supply_action_used_this_turn:
-		return {"ok": false, "reason": "SUPPLY_ACTION_LIMIT_REACHED"}
+		return {"ok": false, "reason": REASON_CODES.SUPPLY_ACTION_LIMIT_REACHED}
 
 	var add_troop: int = int(payload.get("troop_source", 0))
 	var add_food: int = int(payload.get("food", 0))
@@ -22,7 +23,7 @@ func supply(transport, target, payload: Dictionary, is_reachable: bool) -> Dicti
 	add_money = min(add_money, transport.money)
 
 	if add_troop <= 0 and add_food <= 0 and add_money <= 0:
-		return {"ok": false, "reason": "NOTHING_TO_SUPPLY"}
+		return {"ok": false, "reason": REASON_CODES.NOTHING_TO_SUPPLY}
 
 	var old_troop: int = target.troop_source
 	var old_tp: float = target.tactic_point

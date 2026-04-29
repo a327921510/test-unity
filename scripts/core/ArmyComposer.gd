@@ -2,6 +2,7 @@ extends RefCounted
 class_name ArmyComposer
 
 const UNIT_DATA_SCRIPT := preload("res://scripts/domain/Unit.gd")
+const REASON_CODES := preload("res://scripts/common/ReasonCodes.gd")
 
 func compose_unit(
 	city,
@@ -15,13 +16,13 @@ func compose_unit(
 	money: int
 ) -> Dictionary:
 	if city.owner_faction_id != faction_id:
-		return {"ok": false, "reason": "CITY_OWNER_MISMATCH"}
+		return {"ok": false, "reason": REASON_CODES.CITY_OWNER_MISMATCH}
 	if troop_source <= 0:
-		return {"ok": false, "reason": "INVALID_TROOP_SOURCE"}
+		return {"ok": false, "reason": REASON_CODES.INVALID_TROOP_SOURCE}
 	if city.troop_source < troop_source:
-		return {"ok": false, "reason": "CITY_TROOP_SOURCE_NOT_ENOUGH"}
+		return {"ok": false, "reason": REASON_CODES.CITY_TROOP_SOURCE_NOT_ENOUGH}
 	if city.weapon_stock.get(weapon_type, 0) < troop_source:
-		return {"ok": false, "reason": "CITY_WEAPON_NOT_ENOUGH"}
+		return {"ok": false, "reason": REASON_CODES.CITY_WEAPON_NOT_ENOUGH}
 
 	var taken_food: int = min(food, city.food)
 	var taken_money: int = min(money, city.money)
@@ -40,7 +41,7 @@ func compose_unit(
 
 func disband_into_city(unit, city) -> Dictionary:
 	if city.owner_faction_id != unit.faction_id:
-		return {"ok": false, "reason": "CITY_OWNER_MISMATCH"}
+		return {"ok": false, "reason": REASON_CODES.CITY_OWNER_MISMATCH}
 
 	var returned := {
 		"troop_source": unit.troop_source,

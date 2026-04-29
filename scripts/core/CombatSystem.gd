@@ -3,10 +3,11 @@ class_name CombatSystem
 
 const UNIT_DATA_SCRIPT := preload("res://scripts/domain/Unit.gd")
 const CITY_DATA_SCRIPT := preload("res://scripts/domain/City.gd")
+const REASON_CODES := preload("res://scripts/common/ReasonCodes.gd")
 
 func resolve_battle(attacker, defender, terrain_damage_coeff := 1.0) -> Dictionary:
 	if attacker.execution_state != UNIT_DATA_SCRIPT.ExecutionState.UNEXECUTED:
-		return {"ok": false, "reason": "ATTACKER_ALREADY_EXECUTED"}
+		return {"ok": false, "reason": REASON_CODES.ATTACKER_ALREADY_EXECUTED}
 
 	var hit_rate: float = clampf(0.75 + 0.05 - 0.05, 0.1, 0.95)
 	var hit_roll: float = randf()
@@ -52,9 +53,9 @@ func resolve_battle(attacker, defender, terrain_damage_coeff := 1.0) -> Dictiona
 
 func resolve_siege(attacker, city) -> Dictionary:
 	if attacker.execution_state != UNIT_DATA_SCRIPT.ExecutionState.UNEXECUTED:
-		return {"ok": false, "reason": "ATTACKER_ALREADY_EXECUTED"}
+		return {"ok": false, "reason": REASON_CODES.ATTACKER_ALREADY_EXECUTED}
 	if attacker.faction_id == city.owner_faction_id:
-		return {"ok": false, "reason": "SAME_FACTION_CITY"}
+		return {"ok": false, "reason": REASON_CODES.SAME_FACTION_CITY}
 
 	var siege_type_coeff: float = 1.0
 	if attacker.arms_type == UNIT_DATA_SCRIPT.ArmsType.CATAPULT:
