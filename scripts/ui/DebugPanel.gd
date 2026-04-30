@@ -3,14 +3,18 @@ class_name DebugPanel
 
 var _log_label: RichTextLabel
 var _on_action: Callable
+var _selection_label: Label
+var _buttons: Dictionary = {}
 
 func setup(on_action: Callable) -> void:
 	_on_action = on_action
 	var root := Control.new()
 	root.set_anchors_preset(Control.PRESET_FULL_RECT)
+	root.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(root)
 
 	var panel := PanelContainer.new()
+	panel.mouse_filter = Control.MOUSE_FILTER_STOP
 	panel.offset_left = 20
 	panel.offset_top = 130
 	panel.offset_right = 350
@@ -22,6 +26,9 @@ func setup(on_action: Callable) -> void:
 	var title := Label.new()
 	title.text = "调试操作面板"
 	vb.add_child(title)
+	_selection_label = Label.new()
+	_selection_label.text = "当前选中: 无"
+	vb.add_child(_selection_label)
 
 	_add_button(vb, "M 移动", "move")
 	_add_button(vb, "C 编制", "compose")
@@ -33,8 +40,10 @@ func setup(on_action: Callable) -> void:
 	_add_button(vb, "Space 结束回合", "end_turn")
 	_add_button(vb, "Y 一键演示", "full_demo")
 	_add_button(vb, "R 重置", "reset")
+	set_selection_mode("none", "")
 
 	var log_panel := PanelContainer.new()
+	log_panel.mouse_filter = Control.MOUSE_FILTER_PASS
 	log_panel.offset_left = 880
 	log_panel.offset_top = 430
 	log_panel.offset_right = 1260
@@ -60,3 +69,33 @@ func _add_button(parent: VBoxContainer, text: String, action_id: String) -> void
 			_on_action.call(action_id)
 	)
 	parent.add_child(btn)
+	_buttons[action_id] = btn
+
+func set_selection_mode(selection_type: String, selected_id: String = "") -> void:
+	if _selection_label != null:
+		var target_text := "无"
+		if selection_type == "city":
+			target_text = "城市 %s" % selected_id
+		elif selection_type == "unit":
+			target_text = "部队 %s" % selected_id
+		_selection_label.text = "当前选中: %s" % target_text
+
+	var always_actions := {
+		"monthly": true,
+		"end_turn": true,
+		"full_demo": true,
+		"reset": true
+	}
+	var city_actions := {"compose": true}
+	var unit_actions := {
+		"move": true,
+		"entry": true
+	}
+	for action_id in _buttons.keys():
+		var button = _buttons[action_id]
+		var button_visible := always_actions.has(action_id)
+		if selection_type == "city" and city_actions.has(action_id):
+			button_visible = true
+		if selection_type == "unit" and unit_actions.has(action_id):
+			button_visible = true
+		button.visible = button_visible

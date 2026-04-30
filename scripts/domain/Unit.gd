@@ -36,6 +36,14 @@ var ranged_defense: int = 55
 var siege_power: int = 120
 var starvation_penalty_ratio: float = 0.0
 var supply_action_used_this_turn: bool = false
+var int_stat: int = 50
+var build: int = 50
+var catapult_amount: int = 0
+var troop_source_cap: int = 1000
+var weapon_cap: int = 1000
+var food_cap: int = 1000
+var money_cap: int = 10000
+var is_controllable_in_current_turn: bool = true
 
 func _init(
 	p_id: String,
@@ -71,3 +79,14 @@ func apply_loss(loss: int) -> int:
 		is_routed = true
 		wounded_troop_source = 0
 	return real_loss
+
+func refresh_resource_caps(single_turn_food_cost: int, turn_span: int = 20) -> void:
+	troop_source_cap = max(0, troop_source)
+	weapon_cap = troop_source_cap
+	food_cap = max(0, (troop_source + weapon_amount) * max(0, single_turn_food_cost) * max(1, turn_span))
+	money_cap = 10000
+
+func clamp_carry_resources() -> void:
+	weapon_amount = min(weapon_amount, weapon_cap)
+	food = min(food, food_cap)
+	money = min(money, money_cap)

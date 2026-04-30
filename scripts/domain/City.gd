@@ -32,6 +32,11 @@ var wounded_troop_source := 0
 var conscription := 4000
 var catapult_stock := 1
 var catapult_progress := 0.0
+var max_composable_forces := 4
+var max_recruitable_troop_source := 6000
+var composed_forces_this_turn := 0
+var recruited_troop_source_this_turn := 0
+var accept_capacity_snapshot := {}
 var weapon_stock := {
 	"SPEAR": 6000,
 	"HALBERD": 6000,

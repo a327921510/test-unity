@@ -115,25 +115,32 @@ func is_tile_reachable(unit, tile: Vector2i) -> bool:
 func build_path(unit, target: Vector2i) -> Array[Vector2i]:
 	if target == unit.grid:
 		return []
-	if not is_tile_reachable(unit, target):
+	if _city_blocked_cells.has(target):
+		return []
+	if _occupied_cells.has(target) and _occupied_cells[target] != unit:
 		return []
 	var frontier: Array[Vector2i] = [unit.grid]
 	var came_from: Dictionary = {}
-	var visited: Dictionary = {unit.grid: true}
+	var g_score: Dictionary = {unit.grid: 0}
+	var f_score: Dictionary = {unit.grid: hex_distance(unit.grid, target)}
 	while frontier.size() > 0:
-		var current: Vector2i = frontier.pop_front()
+		var current: Vector2i = _pop_lowest_f(frontier, f_score)
 		if current == target:
 			break
 		for next_cell in neighbors(current):
-			if visited.has(next_cell):
-				continue
 			if _city_blocked_cells.has(next_cell):
 				continue
 			if _occupied_cells.has(next_cell) and _occupied_cells[next_cell] != unit and next_cell != target:
 				continue
-			visited[next_cell] = true
-			came_from[next_cell] = current
-			frontier.append(next_cell)
+			var tentative_g: int = int(g_score.get(current, 1_000_000_000)) + 1
+			if tentative_g > unit.remaining_move_points:
+				continue
+			if tentative_g < int(g_score.get(next_cell, 1_000_000_000)):
+				came_from[next_cell] = current
+				g_score[next_cell] = tentative_g
+				f_score[next_cell] = tentative_g + hex_distance(next_cell, target)
+				if not frontier.has(next_cell):
+					frontier.append(next_cell)
 	if not came_from.has(target):
 		return []
 	var reverse_path: Array[Vector2i] = []
@@ -143,6 +150,20 @@ func build_path(unit, target: Vector2i) -> Array[Vector2i]:
 		cursor = came_from[cursor]
 	reverse_path.reverse()
 	return reverse_path
+
+func _pop_lowest_f(frontier: Array[Vector2i], f_score: Dictionary) -> Vector2i:
+	var best_idx := 0
+	var best_cell: Vector2i = frontier[0]
+	var best_f: int = int(f_score.get(best_cell, 1_000_000_000))
+	for idx in range(1, frontier.size()):
+		var cell: Vector2i = frontier[idx]
+		var score: int = int(f_score.get(cell, 1_000_000_000))
+		if score < best_f:
+			best_f = score
+			best_idx = idx
+			best_cell = cell
+	frontier.remove_at(best_idx)
+	return best_cell
 
 func move_unit_one_step(unit, next_cell: Vector2i) -> Dictionary:
 	if not is_adjacent(unit.grid, next_cell):

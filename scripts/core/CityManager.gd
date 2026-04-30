@@ -10,9 +10,10 @@ const BASE_TROOP_SOURCE_PER_POP := 0.015
 const CONSCRIPTION_GAIN_RATE_PER_TURN := 0.001
 const WOUNDED_RECOVERY_RATE_PER_TURN := 0.1
 
-func monthly_settlement(city) -> Dictionary:
+func monthly_settlement(city, turn_index: int = -1) -> Dictionary:
 	city.update_level_by_population()
-	_apply_security_decay(city)
+	city.durability_max = _durability_max(city.level)
+	_apply_security_decay(city, turn_index)
 	var war_penalty: float = _war_penalty(city.war_state)
 	var security_factor: float = 0.5 + float(city.security) / 200.0
 	var low_security_factor: float = 0.5 if city.security < 50 else 1.0
@@ -24,12 +25,7 @@ func monthly_settlement(city) -> Dictionary:
 	var troop_output := int(floor(city.population * BASE_TROOP_SOURCE_PER_POP * coeff * security_factor * war_penalty * low_security_factor))
 	var conscription_gain := int(floor(city.population * CONSCRIPTION_GAIN_RATE_PER_TURN))
 
-	var wounded_factor := 1.0
-	if city.war_state == CITY_DATA_SCRIPT.CityWarState.INVASION:
-		wounded_factor = 0.8
-	elif city.war_state == CITY_DATA_SCRIPT.CityWarState.SIEGE:
-		wounded_factor = 0.5
-	var wounded_recovery := int(floor(city.wounded_troop_source * WOUNDED_RECOVERY_RATE_PER_TURN * wounded_factor))
+	var wounded_recovery := int(floor(city.wounded_troop_source * WOUNDED_RECOVERY_RATE_PER_TURN))
 
 	city.money += money_output
 	city.food += food_output
@@ -65,12 +61,15 @@ func recruit_once(city) -> Dictionary:
 	city.troop_source += real_consume
 	return {"conscription_cost": real_consume, "troop_source_gain": real_consume}
 
-func _apply_security_decay(city) -> void:
-	city.security = max(city.security - 2, 0)
-	if city.war_state == CITY_DATA_SCRIPT.CityWarState.INVASION:
-		city.security = max(city.security - 2, 0)
+func _apply_security_decay(city, turn_index: int) -> void:
+	if turn_index > 0 and turn_index % 2 != 0:
+		return
+	var security_decay := 2
 	if city.war_state == CITY_DATA_SCRIPT.CityWarState.SIEGE:
-		city.security = max(city.security - 4, 0)
+		security_decay += 4
+	elif city.war_state == CITY_DATA_SCRIPT.CityWarState.INVASION:
+		security_decay += 2
+	city.security = max(city.security - security_decay, 0)
 
 func _war_penalty(war_state: int) -> float:
 	match war_state:
@@ -95,6 +94,19 @@ func _durability_recovery(level: int) -> int:
 			return 180
 		_:
 			return 90
+
+func _durability_max(level: int) -> int:
+	match level:
+		CITY_DATA_SCRIPT.CityLevel.SMALL:
+			return 3000
+		CITY_DATA_SCRIPT.CityLevel.MEDIUM:
+			return 5000
+		CITY_DATA_SCRIPT.CityLevel.LARGE:
+			return 8000
+		CITY_DATA_SCRIPT.CityLevel.METROPOLIS:
+			return 12000
+		_:
+			return 5000
 
 func _apply_population_growth(city) -> void:
 	var growth_rate := 0.003
