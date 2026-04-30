@@ -79,6 +79,76 @@ func remove_unit(unit) -> void:
 func register_unit(unit) -> void:
 	_occupied_cells[unit.grid] = unit
 
+func get_reachable_tiles(unit) -> Array[Vector2i]:
+	var reachable_map: Dictionary = {}
+	var frontier: Array[Vector2i] = [unit.grid]
+	var best_cost: Dictionary = {unit.grid: 0}
+	while frontier.size() > 0:
+		var current: Vector2i = frontier.pop_front()
+		var current_cost: int = best_cost[current]
+		for next_cell in neighbors(current):
+			if _city_blocked_cells.has(next_cell):
+				continue
+			if _occupied_cells.has(next_cell) and _occupied_cells[next_cell] != unit:
+				continue
+			var next_cost := current_cost + 1
+			if next_cost > unit.remaining_move_points:
+				continue
+			if not best_cost.has(next_cell) or next_cost < best_cost[next_cell]:
+				best_cost[next_cell] = next_cost
+				frontier.append(next_cell)
+				if next_cell != unit.grid:
+					reachable_map[next_cell] = true
+	var result: Array[Vector2i] = []
+	for cell in reachable_map.keys():
+		result.append(cell)
+	return result
+
+func is_tile_reachable(unit, tile: Vector2i) -> bool:
+	if tile == unit.grid:
+		return true
+	for reachable in get_reachable_tiles(unit):
+		if reachable == tile:
+			return true
+	return false
+
+func build_path(unit, target: Vector2i) -> Array[Vector2i]:
+	if target == unit.grid:
+		return []
+	if not is_tile_reachable(unit, target):
+		return []
+	var frontier: Array[Vector2i] = [unit.grid]
+	var came_from: Dictionary = {}
+	var visited: Dictionary = {unit.grid: true}
+	while frontier.size() > 0:
+		var current: Vector2i = frontier.pop_front()
+		if current == target:
+			break
+		for next_cell in neighbors(current):
+			if visited.has(next_cell):
+				continue
+			if _city_blocked_cells.has(next_cell):
+				continue
+			if _occupied_cells.has(next_cell) and _occupied_cells[next_cell] != unit and next_cell != target:
+				continue
+			visited[next_cell] = true
+			came_from[next_cell] = current
+			frontier.append(next_cell)
+	if not came_from.has(target):
+		return []
+	var reverse_path: Array[Vector2i] = []
+	var cursor: Vector2i = target
+	while cursor != unit.grid:
+		reverse_path.append(cursor)
+		cursor = came_from[cursor]
+	reverse_path.reverse()
+	return reverse_path
+
+func move_unit_one_step(unit, next_cell: Vector2i) -> Dictionary:
+	if not is_adjacent(unit.grid, next_cell):
+		return {"ok": false, "reason": MoveReason.INSUFFICIENT_MOVE_POINT}
+	return try_move_unit(unit, next_cell)
+
 func _rebuild_city_blocked_cells() -> void:
 	_city_blocked_cells.clear()
 	for core in _city_core_cells:

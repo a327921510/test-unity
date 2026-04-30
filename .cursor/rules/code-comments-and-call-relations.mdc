@@ -1,0 +1,28 @@
+---
+description: 生成代码时补充中文函数说明与调用关系
+globs: **/*.{gd,cs,ts,tsx,js,jsx,py,java,go,rs,c,cpp,h,hpp}
+alwaysApply: false
+---
+
+# 中文注释与调用关系
+
+仅在“生成/修改代码”时生效；生成文档时不生效。
+
+- 为新增或复杂函数补充中文注释，至少说明：
+  - 函数功能（做什么）
+  - 输入参数（关键参数含义）
+  - 输出结果（返回值或副作用）
+- 注释要简洁，避免逐行翻译代码。
+- 在全局入口、调度器、主流程函数附近补充“模块/函数调用关系”说明，便于快速理解链路。
+
+```gdscript
+# 计算单位可达范围。
+# 输入: unit(包含当前位置与剩余行动力), grid_rules(地图规则查询器)
+# 输出: Array[Vector2i] 可达格列表
+func get_reachable_tiles(unit, grid_rules) -> Array[Vector2i]:
+    return grid_rules.get_reachable_tiles(unit)
+
+# 调度关系: 输入事件 -> 选择态更新 -> 可达范围刷新 -> 移动执行
+func handle_left_click(pos: Vector2) -> void:
+    pass
+```
