@@ -9,8 +9,8 @@
 ## 2) 项目结构
 
 - [x] 存在 `project.godot`
-- [x] 主场景已配置：`res://scenes/Main.tscn`
-- [x] 主场景脚本存在：`res://scripts/Main.gd`
+- [x] 主场景已配置：`res://scenes/Main3D.tscn`
+- [x] 主场景脚本存在：`res://scripts/MainInteractive3D.gd`
 - [x] 资源图标存在：`res://icon.svg`
 - [x] 已配置 `.gitignore`（忽略 `.godot/` 等缓存目录）
 

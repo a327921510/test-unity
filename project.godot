@@ -15,7 +15,7 @@ compatibility/default_parent_skeleton_in_mesh_instance_3d=true
 [application]
 
 config/name="test-unity-godot"
-run/main_scene="res://scenes/Main.tscn"
+run/main_scene="res://scenes/Main3D.tscn"
 config/features=PackedStringArray("4.6")
 config/icon="res://icon.svg"
 
