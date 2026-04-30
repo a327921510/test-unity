@@ -1,0 +1,25 @@
+[remap]
+
+importer="wavefront_obj"
+importer_version=1
+type="Mesh"
+uid="uid://p6qp3e2fvomc"
+path="res://.godot/imported/building_windmill_yellow_building_windmill_top_yellow_building_windmill_top_fan_yellow.obj-42024d7c999b49c2f86a8a8ce8c2e8bf.mesh"
+
+[deps]
+
+files=["res://.godot/imported/building_windmill_yellow_building_windmill_top_yellow_building_windmill_top_fan_yellow.obj-42024d7c999b49c2f86a8a8ce8c2e8bf.mesh"]
+
+source_file="res://download/KayKit_Medieval_Hexagon_Pack_1.0_FREE/Assets/obj/buildings/yellow/building_windmill_yellow_building_windmill_top_yellow_building_windmill_top_fan_yellow.obj"
+dest_files=["res://.godot/imported/building_windmill_yellow_building_windmill_top_yellow_building_windmill_top_fan_yellow.obj-42024d7c999b49c2f86a8a8ce8c2e8bf.mesh", "res://.godot/imported/building_windmill_yellow_building_windmill_top_yellow_building_windmill_top_fan_yellow.obj-42024d7c999b49c2f86a8a8ce8c2e8bf.mesh"]
+
+[params]
+
+generate_tangents=true
+generate_lods=true
+generate_shadow_mesh=true
+generate_lightmap_uv2=false
+generate_lightmap_uv2_texel_size=0.2
+scale_mesh=Vector3(1, 1, 1)
+offset_mesh=Vector3(0, 0, 0)
+force_disable_mesh_compression=false

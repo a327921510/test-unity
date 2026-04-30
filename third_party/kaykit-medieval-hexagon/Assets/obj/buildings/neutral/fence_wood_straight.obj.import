@@ -1,0 +1,25 @@
+[remap]
+
+importer="wavefront_obj"
+importer_version=1
+type="Mesh"
+uid="uid://de5eil2sxjq51"
+path="res://.godot/imported/fence_wood_straight.obj-0ec6e7f6c5e259a9ef8da1acfd7794f5.mesh"
+
+[deps]
+
+files=["res://.godot/imported/fence_wood_straight.obj-0ec6e7f6c5e259a9ef8da1acfd7794f5.mesh"]
+
+source_file="res://third_party/kaykit-medieval-hexagon/Assets/obj/buildings/neutral/fence_wood_straight.obj"
+dest_files=["res://.godot/imported/fence_wood_straight.obj-0ec6e7f6c5e259a9ef8da1acfd7794f5.mesh", "res://.godot/imported/fence_wood_straight.obj-0ec6e7f6c5e259a9ef8da1acfd7794f5.mesh"]
+
+[params]
+
+generate_tangents=true
+generate_lods=true
+generate_shadow_mesh=true
+generate_lightmap_uv2=false
+generate_lightmap_uv2_texel_size=0.2
+scale_mesh=Vector3(1, 1, 1)
+offset_mesh=Vector3(0, 0, 0)
+force_disable_mesh_compression=false

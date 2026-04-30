@@ -1,0 +1,25 @@
+[remap]
+
+importer="wavefront_obj"
+importer_version=1
+type="Mesh"
+uid="uid://ud3svx0l1jgp"
+path="res://.godot/imported/building_tavern_red.obj-aa124549225231f6ec067589c261c679.mesh"
+
+[deps]
+
+files=["res://.godot/imported/building_tavern_red.obj-aa124549225231f6ec067589c261c679.mesh"]
+
+source_file="res://third_party/kaykit-medieval-hexagon/Assets/obj/buildings/red/building_tavern_red.obj"
+dest_files=["res://.godot/imported/building_tavern_red.obj-aa124549225231f6ec067589c261c679.mesh", "res://.godot/imported/building_tavern_red.obj-aa124549225231f6ec067589c261c679.mesh"]
+
+[params]
+
+generate_tangents=true
+generate_lods=true
+generate_shadow_mesh=true
+generate_lightmap_uv2=false
+generate_lightmap_uv2_texel_size=0.2
+scale_mesh=Vector3(1, 1, 1)
+offset_mesh=Vector3(0, 0, 0)
+force_disable_mesh_compression=false

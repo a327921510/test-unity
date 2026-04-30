@@ -1,0 +1,25 @@
+[remap]
+
+importer="wavefront_obj"
+importer_version=1
+type="Mesh"
+uid="uid://bmy6rgddyy0ho"
+path="res://.godot/imported/crate_open.obj-ae1ff2096d8cf6ebfb88070312468ebc.mesh"
+
+[deps]
+
+files=["res://.godot/imported/crate_open.obj-ae1ff2096d8cf6ebfb88070312468ebc.mesh"]
+
+source_file="res://third_party/kaykit-medieval-hexagon/Assets/obj/decoration/props/crate_open.obj"
+dest_files=["res://.godot/imported/crate_open.obj-ae1ff2096d8cf6ebfb88070312468ebc.mesh", "res://.godot/imported/crate_open.obj-ae1ff2096d8cf6ebfb88070312468ebc.mesh"]
+
+[params]
+
+generate_tangents=true
+generate_lods=true
+generate_shadow_mesh=true
+generate_lightmap_uv2=false
+generate_lightmap_uv2_texel_size=0.2
+scale_mesh=Vector3(1, 1, 1)
+offset_mesh=Vector3(0, 0, 0)
+force_disable_mesh_compression=false
